@@ -60,46 +60,40 @@ public class SecondActivity extends AppCompatActivity {
             startActivity(call);
         });
 
-        cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        ActivityResultLauncher<Intent> cameraResult = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                new ActivityResultCallback<ActivityResult>() {
-                    @Override
-                    public void onActivityResult(ActivityResult result) {
-                        if (result.getResultCode() == Activity.RESULT_OK) {
-                            Intent data = result.getData();
-                            Bitmap thumbnail = data.getParcelableExtra("data");
-                            FileOutputStream fOut = null;
-                            try {
-                                fOut = openFileOutput("Picture.png", Context.MODE_PRIVATE);
-                                thumbnail.compress(Bitmap.CompressFormat.PNG, 100, fOut);
-                                fOut.flush();
-                                fOut.close();
-                            } catch (FileNotFoundException e) {
-                                e.printStackTrace();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                            profileImage.setImageBitmap(thumbnail);
-                        }
-                    }
-                }
-        );
         picButton = findViewById(R.id.picButton);
         profileImage = findViewById(R.id.profileImage);
-        picButton.setOnClickListener( clk -> {
-
-            cameraResult.launch(cameraIntent);
-        });
 
         //test if a file exists, then load the file
         String filename = "Picture.png";
         File file = new File(getFilesDir(), filename);
         if (file.exists()) {
-            Bitmap theImage = BitmapFactory.decodeFile(filename);
+            Bitmap theImage = BitmapFactory.decodeFile(file.getPath());
             profileImage.setImageBitmap(theImage);
         }
 
+        cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        ActivityResultLauncher<Intent> cameraResult = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Intent data = result.getData();
+                        Bitmap thumbnail = data.getParcelableExtra("data");
+                        FileOutputStream fOut = null;
+                        try {
+                            fOut = openFileOutput("Picture.png", Context.MODE_PRIVATE);
+                            thumbnail.compress(Bitmap.CompressFormat.PNG, 100, fOut);
+                            fOut.flush();
+                            fOut.close();
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        profileImage.setImageBitmap(thumbnail);
+                    }
+                }
+        );
+        picButton.setOnClickListener( clk -> cameraResult.launch(cameraIntent));
     }
 
     @Override

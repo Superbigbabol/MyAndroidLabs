@@ -71,5 +71,9 @@
         android:text="@string/spin_message"
         app:layout_constraintBottom_toBottomOf="@+id/flagview"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/flagview" />
+        app:layout_constraintTop_toTopOf="@+id/flagview"
+        android:nextFocusUp="@id/button3"
+        android:nextFocusDown="@id/spin_switch"
+        android:nextFocusRight="@id/button3"
+        android:nextFocusLeft="@id/button1" />
 </androidx.constraintlayout.widget.ConstraintLayout>

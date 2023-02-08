@@ -40,6 +40,8 @@ android.applicationVariants.all { variant ->
             ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
             classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
             options.addStringOption "-show-members", "package"
+            options.author = true
+            options.version = true
         }
     }}
 

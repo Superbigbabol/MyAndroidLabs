@@ -65,12 +65,13 @@ public class ChatRoom extends AppCompatActivity {
         });
 
         binding.receiveButton.setOnClickListener( click -> {
-            String receiveMsg = messages.get(messages.size()-1).getMessage();
-            String receiveDT = messages.get(messages.size()-1).getTimeSent();
-            ChatMessage cm = new ChatMessage(receiveMsg, receiveDT, false);
+            String receiveMsg = binding.textInput.getText().toString();
+            SimpleDateFormat sdf = new SimpleDateFormat("EEEE, dd-MMM-yyyy hh-mm-ss a");
+            String currentDateandTime = sdf.format(new Date());
+            ChatMessage cm = new ChatMessage(receiveMsg, currentDateandTime, false);
             messages.add(cm);
             myAdapter.notifyItemInserted(messages.size()-1);
-
+            binding.textInput.setText("");
         });
 
         binding.recycleView.setAdapter(myAdapter = new RecyclerView.Adapter<MyRowHolder>() {
@@ -79,10 +80,10 @@ public class ChatRoom extends AppCompatActivity {
             public MyRowHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
                 if (viewType==0)
                 {
-                    SentMessageBinding sbinding = SentMessageBinding.inflate(getLayoutInflater());
+                    SentMessageBinding sbinding = SentMessageBinding.inflate(getLayoutInflater(), parent, false);
                     return new MyRowHolder(sbinding.getRoot());
                 }
-                ReceiveMessageBinding rbinding = ReceiveMessageBinding.inflate(getLayoutInflater());
+                ReceiveMessageBinding rbinding = ReceiveMessageBinding.inflate(getLayoutInflater(), parent, false);
                 return new MyRowHolder(rbinding.getRoot());
             }
 
@@ -102,7 +103,7 @@ public class ChatRoom extends AppCompatActivity {
 
             @Override
             public int getItemViewType(int position) {
-                if (messages.get(messages.size()-1).isSentButton())
+                if (messages.get(position).isSentButton())
                 {
                     return 0;
                 }

@@ -46,7 +46,7 @@ public class ChatRoom extends AppCompatActivity {
         public MyRowHolder(@NonNull View itemView){
             super(itemView);
             itemView.setOnClickListener( click -> {
-                int position = getAbsoluteAdapterPosition();//which row was clicked
+                int position = getAbsoluteAdapterPosition();//return which row was clicked
 
                 ChatMessage clickedMessage = messages.get(position);//get ChatMessage at the position
                 // create alertdialog
@@ -147,19 +147,22 @@ public class ChatRoom extends AppCompatActivity {
         messages = chatModel.messages.getValue();
         if (messages == null)
         {
-            chatModel.messages.postValue(messages = new ArrayList<>());
+            messages = new ArrayList<>();
+
+            //get chat history from db in another thread
+            Executor thread = Executors.newSingleThreadExecutor();
+            thread.execute(() ->
+            {
+                //on a second thread
+                messages.addAll( mDAO.getAllMessages() ); //Once you get the data from database
+
+                // on main thread
+                //runOnUiThread( () ->  binding.recycleView.setAdapter( myAdapter ));
+            });
+            chatModel.messages.postValue(messages);
         }
-        //get chat history from db in another thread
-        Executor thread = Executors.newSingleThreadExecutor();
-        thread.execute(() ->
-        {
-            //on a second thread
-            messages.addAll( mDAO.getAllMessages() ); //Once you get the data from database
-
-            // on main thread
-            runOnUiThread( () ->  binding.recycleView.setAdapter( myAdapter )); //You can then load the RecyclerView
-        });
-
+        //load the RecyclerView
+        binding.recycleView.setAdapter( myAdapter );
         //display recycle view
         binding.recycleView.setLayoutManager(new LinearLayoutManager(this));
 

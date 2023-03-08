@@ -3,6 +3,9 @@ package algonquin.cst2335.shu00003;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -46,45 +49,49 @@ public class ChatRoom extends AppCompatActivity {
         public MyRowHolder(@NonNull View itemView){
             super(itemView);
             itemView.setOnClickListener( click -> {
-                int position = getAbsoluteAdapterPosition();//return which row was clicked
+                int position = getAbsoluteAdapterPosition();
+                ChatMessage selected = messages.get(position);
+                chatModel.selectedMessage.postValue(selected);//post in the ViewModel MutableLiveData
 
-                ChatMessage clickedMessage = messages.get(position);//get ChatMessage at the position
-                // create alertdialog
-                AlertDialog.Builder builder = new AlertDialog.Builder(ChatRoom.this);
-                builder.setMessage("Do you want to delete this message?"+messageText.getText())
-                        .setTitle("Question:")
-                        .setPositiveButton("Yes", (dialogInterface, i) -> {
-                    Executor thread = Executors.newSingleThreadExecutor();
-                    thread.execute(() ->
-                    {
-                        //run in background thread
-                        mDAO.deleteMessage(clickedMessage);//delete from db
-                        messages.remove(position);//remove from ArrayList
-                        //go back to main thread
-                        runOnUiThread(()->{
-                            myAdapter.notifyItemRemoved(position);//update the recycler view
-                            Snackbar.make(messageText, "You deleted message #"+position, Snackbar.LENGTH_LONG)
-                                    .setAction("Undo", clk -> {
-                                        Executor thread_2 = Executors.newSingleThreadExecutor();
-                                        thread_2.execute(() ->{
-                                            //background
-                                            mDAO.insertMessage(clickedMessage);
-                                            messages.add(position,clickedMessage);
-                                            //main thread
-                                            runOnUiThread(()->{
-                                                myAdapter.notifyItemInserted(position);
-                                            });
-                                        });
-                                    })
-                                    .show();
-                        });
-
-                    });
-                })
-                .setNegativeButton("No",(dialogInterface, i) -> {
-                    //do nothing
-                })
-                .create().show();
+//                int position = getAbsoluteAdapterPosition();//return which row was clicked
+//
+//                ChatMessage clickedMessage = messages.get(position);//get ChatMessage at the position
+//                // create alertdialog
+//                AlertDialog.Builder builder = new AlertDialog.Builder(ChatRoom.this);
+//                builder.setMessage("Do you want to delete this message?"+messageText.getText())
+//                        .setTitle("Question:")
+//                        .setPositiveButton("Yes", (dialogInterface, i) -> {
+//                    Executor thread = Executors.newSingleThreadExecutor();
+//                    thread.execute(() ->
+//                    {
+//                        //run in background thread
+//                        mDAO.deleteMessage(clickedMessage);//delete from db
+//                        messages.remove(position);//remove from ArrayList
+//                        //go back to main thread
+//                        runOnUiThread(()->{
+//                            myAdapter.notifyItemRemoved(position);//update the recycler view
+//                            Snackbar.make(messageText, "You deleted message #"+position, Snackbar.LENGTH_LONG)
+//                                    .setAction("Undo", clk -> {
+//                                        Executor thread_2 = Executors.newSingleThreadExecutor();
+//                                        thread_2.execute(() ->{
+//                                            //background
+//                                            mDAO.insertMessage(clickedMessage);
+//                                            messages.add(position,clickedMessage);
+//                                            //main thread
+//                                            runOnUiThread(()->{
+//                                                myAdapter.notifyItemInserted(position);
+//                                            });
+//                                        });
+//                                    })
+//                                    .show();
+//                        });
+//
+//                    });
+//                })
+//                .setNegativeButton("No",(dialogInterface, i) -> {
+//                    //do nothing
+//                })
+//                .create().show();
 
             });
 
@@ -201,6 +208,20 @@ public class ChatRoom extends AppCompatActivity {
 
             myAdapter.notifyItemInserted(messages.size()-1);
             binding.textInput.setText("");
+        });
+
+        chatModel.selectedMessage.observe(this, newMessageValue ->{
+            MessageDetailsFragment chatFragment = new MessageDetailsFragment(newMessageValue);
+//            FragmentManager fMgr = getSupportFragmentManager();
+//            FragmentTransaction tx = fMgr.beginTransaction();
+//            tx.add(R.id.fragmentLocation, chatFragment);
+//            tx.commit();
+
+            //builder pattern
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragmentLocation, chatFragment)
+                    .commit();
         });
 
     }

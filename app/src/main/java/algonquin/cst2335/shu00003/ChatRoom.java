@@ -221,6 +221,7 @@ public class ChatRoom extends AppCompatActivity {
             getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.fragmentLocation, chatFragment)
+                    .addToBackStack("")
                     .commit();
         });
 

@@ -10,12 +10,16 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
+import androidx.appcompat.widget.Toolbar;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.material.snackbar.Snackbar;
 
@@ -101,11 +105,74 @@ public class ChatRoom extends AppCompatActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        getMenuInflater().inflate(R.menu.my_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId())
+        {
+            case R.id.item_1:
+                // get selected message from ChatRoomViewModel
+                ChatMessage sm = chatModel.selectedMessage.getValue();
+                // get position in arraylist
+                int position = messages.indexOf(sm);
+                // create alertdialog
+                AlertDialog.Builder builder = new AlertDialog.Builder(ChatRoom.this);
+                builder.setMessage("Do you want to delete this message, "+sm.getMessage()+"?")
+                        .setTitle("Question:")
+                        .setPositiveButton("Yes", (dialogInterface, i) -> {
+                    Executor thread = Executors.newSingleThreadExecutor();
+                    thread.execute(() ->
+                    {
+                        //run in background thread
+                        mDAO.deleteMessage(sm);//delete from db
+                        messages.remove(position);//remove from ArrayList
+                        //go back to main thread
+                        runOnUiThread(()->{
+                            myAdapter.notifyItemRemoved(position);//update the recycler view
+                            Snackbar.make(binding.fragmentLocation, "You deleted message #"+position, Snackbar.LENGTH_LONG)
+                                    .setAction("Undo", clk -> {
+                                        Executor thread_2 = Executors.newSingleThreadExecutor();
+                                        thread_2.execute(() ->{
+                                            //background
+                                            mDAO.insertMessage(sm);
+                                            messages.add(position,sm);
+                                            //main thread
+                                            runOnUiThread(()->{
+                                                myAdapter.notifyItemInserted(position);
+                                            });
+                                        });
+                                    })
+                                    .show();
+                        });
+
+                    });
+                })
+                .setNegativeButton("No",(dialogInterface, i) -> {
+                    //do nothing
+                })
+                .create().show();
+                break;
+            case R.id.item_2:
+                Toast.makeText(ChatRoom.this, "Version 1.0, created by Bo Shu", Toast.LENGTH_LONG).show();
+                break;
+        }
+        return true;
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         binding = ActivityChatRoomBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        // Toolbar
+        setSupportActionBar(binding.myToolbar);
 
         //prepare recycler view adapter
         myAdapter = new RecyclerView.Adapter<MyRowHolder>() {

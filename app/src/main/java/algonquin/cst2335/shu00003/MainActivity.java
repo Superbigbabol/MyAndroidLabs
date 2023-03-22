@@ -8,6 +8,13 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
+import algonquin.cst2335.shu00003.databinding.ActivityMainBinding;
+
 /**
  * @author Bo Shu
  * @version 1.0
@@ -23,22 +30,26 @@ public class MainActivity extends AppCompatActivity {
     /** This holds login button at the bottom */
     private Button btn = null;
 
+    protected String cityName;
+
+    RequestQueue queue = Volley.newRequestQueue(MainActivity.this);
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
-        tv = findViewById(R.id.textView);
-        et = findViewById(R.id.editText);
-        btn = findViewById(R.id.loginButton);
+        tv = binding.textView;
+        et = binding.cityText;
+        btn = binding.forecastButton;
 
         btn.setOnClickListener(clk -> {
-            String password = et.getText().toString();
-            if (checkPasswordComplexity(password)){
-                tv.setText("Your password meets the requirements");
-            } else {
-                tv.setText("You shall not pass!");
-            }
+            cityName = binding.cityText.getText().toString();
+
+//            JsonObjectRequest request = new JsonObjectRequest()
         });
     }
 
